@@ -1,35 +1,31 @@
-# Créer le fichier avec le contenu directement
-cat > nginx.conf.template << 'EOF'
-server {
+events {}
+
+http {
+  server {
     listen ${PORT};
     server_name _;
     root /var/www/project/public;
     index index.php;
 
     location / {
-        try_files $uri /index.php$is_args$args;
+      try_files $uri /index.php?$query_string;
     }
 
     location ~ ^/index\.php(/|$) {
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_split_path_info ^(.+\.php)(/.*)$;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        fastcgi_param DOCUMENT_ROOT $realpath_root;
-        fastcgi_param APP_ENV prod;
-        internal;
+      include fastcgi_params;
+      fastcgi_pass 127.0.0.1:9000;
+      fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+      fastcgi_param DOCUMENT_ROOT $document_root;
     }
 
-    location ~ \.php$ {
-        return 404;
-    }
+    location ~ \.php$ { return 404; }
 
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
+      expires 1y;
+      add_header Cache-Control "public, immutable";
     }
 
-    error_log /var/log/nginx/error.log;
     access_log /var/log/nginx/access.log;
+    error_log  /var/log/nginx/error.log;
+  }
 }
-EOF

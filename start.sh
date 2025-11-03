@@ -1,10 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env sh
+set -e
 
-# Substituer la variable PORT dans la config nginx
-envsubst '\$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Rendre la conf Nginx depuis le template (avec ${PORT} injecté par Render)
+envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# Démarrer PHP-FPM en arrière-plan
+# Lancer php-fpm en arrière-plan puis nginx au premier plan
 php-fpm -D
-
-# Démarrer nginx en premier plan
-nginx -g 'daemon off;'
+exec nginx -g 'daemon off;'
