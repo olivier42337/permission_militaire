@@ -26,6 +26,9 @@ WORKDIR /var/www/project
 # Copier les fichiers
 COPY . .
 
+# Créer le dossier var s'il n'existe pas
+RUN mkdir -p var/cache var/log
+
 # Installer les dépendances (ignorer les scripts post-install)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
@@ -36,9 +39,9 @@ COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 # Lien symbolique pour Nginx
 RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Configurer les permissions
-RUN chown -R www-data:www-data /var/www/project/var
-RUN chmod -R 755 /var/www/project/var
+# Configurer les permissions (APRÈS avoir créé les dossiers)
+RUN chown -R www-data:www-data var/
+RUN chmod -R 755 var/
 
 # Nettoyer le cache (sans scripts complexes)
 RUN php bin/console cache:clear --env=prod --no-debug
