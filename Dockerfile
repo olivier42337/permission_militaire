@@ -1,15 +1,17 @@
-FROM webdevops/php-nginx:8.2
+FROM php:8.2-fpm
 
-# Dossier de travail
+# Installer nginx et envsubst
+RUN apt-get update && apt-get install -y nginx gettext
+
+# Copier le template nginx
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+
+# Copier le code de l'application
+COPY . /var/www/project
 WORKDIR /var/www/project
 
-# Copier les fichiers
-COPY . .
+# Script de démarrage qui processe le template
+COPY start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
-# Créer la structure de dossiers
-RUN mkdir -p var/cache var/log
-
-# Permissions
-RUN chmod -R 755 var/
-
-# L'image a déjà Composer et les dépendances de base
+CMD ["/usr/local/bin/start.sh"]

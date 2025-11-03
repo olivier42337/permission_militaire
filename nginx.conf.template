@@ -1,5 +1,7 @@
+# Créer le fichier avec le contenu directement
+cat > nginx.conf.template << 'EOF'
 server {
-    listen ${PORT};  # ← CHANGEMENT CRITIQUE ICI
+    listen ${PORT};
     server_name _;
     root /var/www/project/public;
     index index.php;
@@ -30,3 +32,4 @@ server {
     error_log /var/log/nginx/error.log;
     access_log /var/log/nginx/access.log;
 }
+EOF
