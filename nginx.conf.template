@@ -12,10 +12,11 @@ http {
     }
 
     location ~ ^/index\.php(/|$) {
-      include fastcgi_params;
+      include fastcgi_params;  # ou 'fastcgi.conf' selon image
       fastcgi_pass 127.0.0.1:9000;
       fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
       fastcgi_param DOCUMENT_ROOT $document_root;
+      # surtout: pas de 'internal' ici
     }
 
     location ~ \.php$ { return 404; }
