@@ -1,49 +1,45 @@
 FROM php:8.2-fpm
 
-# Mise à jour et installation des packages essentiels seulement
+# Installation des packages
 RUN apt-get update && apt-get install -y \
-    git \
     curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
-    zip \
-    unzip \
     libpq-dev \
     nginx \
     supervisor
 
-# Installer seulement les extensions ESSENTIELLES
-RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd
+# Extensions PHP essentielles
+RUN docker-php-ext-install pdo pdo_mysql mbstring gd
 
-# Installer Composer
+# Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Créer le dossier de travail et structure
+# Dossier de travail
 WORKDIR /var/www/project
-RUN mkdir -p var/cache var/log public
 
-# Copier les fichiers
+# Copier le code
 COPY . .
 
-# Installer les dépendances
+# Créer la structure de dossiers
+RUN mkdir -p var/cache var/log
+
+# Installer les dépendances seulement
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Copier les configurations
+# Configuration Nginx
 COPY docker/nginx.conf /etc/nginx/sites-available/default
-COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
-
-# Lien symbolique pour Nginx
 RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Configurer les permissions (simplifié)
-RUN chmod -R 755 var/ public/
+# Configuration Supervisor
+COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
-# Nettoyer le cache
-RUN php bin/console cache:clear --env=prod --no-debug
+# Permissions
+RUN chmod -R 755 var/
 
-# Port exposé
+# Port
 EXPOSE 8000
 
 # Commande de démarrage
