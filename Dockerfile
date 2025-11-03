@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Mettre à jour et installer les dépendances
+# Mise à jour et installation des packages en deux étapes
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -10,21 +10,16 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    libpq-dev \
-    nginx \
-    supervisor \
-    && docker-php-ext-configure gd \
-    && docker-php-ext-install \
-    pdo \
-    pdo_mysql \
-    pdo_pgsql \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    zip \
-    intl
+    libpq-dev
+
+# Installation des extensions PHP séparément
+RUN docker-php-ext-install pdo pdo_mysql
+RUN docker-php-ext-install mbstring exif pcntl bcmath
+RUN docker-php-ext-install zip intl
+RUN docker-php-ext-configure gd && docker-php-ext-install gd
+
+# Installation de Nginx et Supervisor séparément
+RUN apt-get install -y nginx supervisor
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -39,11 +34,16 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Créer le dossier docker et copier les configurations
-RUN mkdir -p docker
+RUN mkdir -p /etc/nginx/sites-available
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
+# Lien symbolique pour Nginx
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+RUN rm -f /etc/nginx/sites-enabled/default
+
 # Configurer les permissions
+RUN mkdir -p /var/www/project/var
 RUN chown -R www-data:www-data /var/www/project/var
 RUN chmod -R 755 /var/www/project/var
 
