@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Dépendances système COMPLÈTES pour Symfony
+# Dépendances système
 RUN apt-get update && apt-get install -y \
     nginx gettext git unzip \
     libicu-dev libzip-dev libpq-dev libxml2-dev libonig-dev \
@@ -18,15 +18,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/project
 COPY . .
 
-# DEBUG Composer - voir l'erreur exacte
-RUN composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader --verbose
+# Installation Composer (ça marche comme on l'a vu)
+RUN composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader
 
-# Nginx
-RUN rm -f /etc/nginx/conf.d/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*
+# Nginx - avec vérifications
+RUN rm -f /etc/nginx/conf.d/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/* \
+ && mkdir -p /var/log/nginx
+
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
+# Permissions
 RUN chown -R www-data:www-data /var/www/project && chmod -R 755 /var/www/project
 
 ENV APP_ENV=prod APP_DEBUG=0
