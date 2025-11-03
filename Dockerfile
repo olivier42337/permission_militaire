@@ -20,14 +20,17 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Dossier de travail
 WORKDIR /var/www/project
 
-# Copier le code
+# Copier SEULEMENT les fichiers nécessaires d'abord
+COPY composer.json composer.lock symfony.lock ./
+
+# Essayer d'installer les dépendances d'abord
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# Copier le reste du code
 COPY . .
 
 # Créer la structure de dossiers
 RUN mkdir -p var/cache var/log
-
-# Installer les dépendances SEULEMENT
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Configuration Nginx
 COPY docker/nginx.conf /etc/nginx/sites-available/default
