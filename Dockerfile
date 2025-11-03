@@ -20,16 +20,14 @@ RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath gd
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Créer le dossier de travail
+# Créer le dossier de travail et structure
 WORKDIR /var/www/project
+RUN mkdir -p var/cache var/log public
 
 # Copier les fichiers
 COPY . .
 
-# Créer le dossier var s'il n'existe pas
-RUN mkdir -p var/cache var/log
-
-# Installer les dépendances (ignorer les scripts post-install)
+# Installer les dépendances
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Copier les configurations
@@ -39,11 +37,10 @@ COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 # Lien symbolique pour Nginx
 RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Configurer les permissions (APRÈS avoir créé les dossiers)
-RUN chown -R www-data:www-data var/
-RUN chmod -R 755 var/
+# Configurer les permissions (simplifié)
+RUN chmod -R 755 var/ public/
 
-# Nettoyer le cache (sans scripts complexes)
+# Nettoyer le cache
 RUN php bin/console cache:clear --env=prod --no-debug
 
 # Port exposé
