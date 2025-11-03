@@ -1,25 +1,50 @@
-# Étape 1 : image officielle PHP avec Apache
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
-# Étape 2 : installation des extensions nécessaires à Symfony
 RUN apt-get update && apt-get install -y \
-    git zip unzip libicu-dev libonig-dev libzip-dev libpq-dev libpng-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql intl zip
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    libpq-dev \
+    nginx \
+    supervisor
 
-# Étape 3 : activer le mod rewrite d’Apache
-RUN a2enmod rewrite
+RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip \
+    intl
 
-# Étape 4 : installer Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Étape 5 : copier le projet dans le conteneur
-COPY . /var/www/html/
+WORKDIR /var/www/project
 
-# Étape 6 : se placer dans le bon dossier
-WORKDIR /var/www/html/
+COPY . .
 
-# Étape 7 : installer les dépendances Symfony
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Étape 8 : configurer Apache pour pointer sur /public
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+RUN mkdir -p docker
+COPY docker/nginx.conf /etc/nginx/sites-available/default
+COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
+
+RUN chown -R www-data:www-data /var/www/project/var
+RUN chmod -R 755 /var/www/project/var
+
+RUN php bin/console assets:install public
+
+RUN php bin/console cache:clear --env=prod
+RUN php bin/console cache:warmup --env=prod
+
+EXPOSE 8000
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisor.conf"]
