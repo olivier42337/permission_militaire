@@ -4,31 +4,55 @@
 
 {% block body %}
 <div class="container mt-4">
-    <h2>Formulaire de demande de permission</h2>
+    <h2 class="mb-4">Formulaire de demande de permission</h2>
+
     <form method="post">
         <div class="mb-3">
             <label for="type" class="form-label">Type de permission</label>
-            <select id="type" name="type" class="form-select">
-                <option>courte</option>
-                <option>longue</option>
-                <option>étranger</option>
+            <select id="type" name="type" class="form-select" required>
+                <option value="" disabled selected>-- Sélectionnez un type --</option>
+                <option value="courte">Courte</option>
+                <option value="longue">Longue</option>
+                <option value="étranger">À l’étranger</option>
             </select>
         </div>
+
         <div class="mb-3">
             <label for="date_debut" class="form-label">Date début</label>
-            <input type="date" id="date_debut" name="date_debut" class="form-control">
+            <input type="text" id="date_debut" name="date_debut" class="form-control" placeholder="Choisissez une date" required>
         </div>
+
         <div class="mb-3">
             <label for="date_fin" class="form-label">Date fin</label>
-            <input type="date" id="date_fin" name="date_fin" class="form-control">
+            <input type="text" id="date_fin" name="date_fin" class="form-control" placeholder="Choisissez une date" required>
         </div>
+
         <div class="mb-3">
             <label for="motif" class="form-label">Motif</label>
-            <textarea id="motif" name="motif" class="form-control"></textarea>
+            <textarea id="motif" name="motif" class="form-control" rows="4" placeholder="Indiquez le motif de votre demande..." required></textarea>
         </div>
-        <button type="submit" class="btn btn-success">Soumettre</button>
-        <a href="{{ path('app_militaire_dashboard') }}" class="btn btn-secondary mt-3">Retour</a>
 
+        <div class="d-flex justify-content-between">
+            <a href="{{ path('app_militaire_dashboard') }}" class="btn btn-secondary">Retour</a>
+            <button type="submit" class="btn btn-success">Soumettre la demande</button>
+        </div>
     </form>
 </div>
+
+{# Activation de Flatpickr #}
+<script>
+    flatpickr("#date_debut", {
+        altInput: true,
+        altFormat: "j F Y",
+        dateFormat: "Y-m-d",
+        locale: "fr"
+    });
+
+    flatpickr("#date_fin", {
+        altInput: true,
+        altFormat: "j F Y",
+        dateFormat: "Y-m-d",
+        locale: "fr"
+    });
+</script>
 {% endblock %}

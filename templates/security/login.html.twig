@@ -1,49 +1,51 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Connexion{% endblock %}
+{% block title %}Connexion — Gestion des permissions militaires{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <form method="post" action="{{ path('app_login') }}">
-                {% if error %}
-                    <div class="alert alert-danger">
-                        {{ error.messageKey|trans(error.messageData, 'security') }}
-                    </div>
-                {% endif %}
+<div class="d-flex justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="w-100" style="max-width:420px;">
+        <h1 class="page-title text-center mb-4">Connexion</h1>
 
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-                <div class="mb-3">
-                    <label for="inputUsername" class="form-label">Email</label>
-                    <input 
-                        type="text" 
-                        value="{{ last_username ?? '' }}" 
-                        name="_username" 
-                        id="inputUsername" 
-                        class="form-control" 
-                        required 
-                        autofocus
-                        autocomplete="username"
-                    >
+        <form method="post" action="{{ path('app_login') }}" class="p-4 bg-white rounded-4 shadow-sm">
+            {% if error %}
+                <div class="alert alert-danger mb-3">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
                 </div>
+            {% endif %}
 
-                <div class="mb-3">
-                    <label for="inputPassword" class="form-label">Mot de passe</label>
-                    <input 
-                        type="password" 
-                        name="_password" 
-                        id="inputPassword" 
-                        class="form-control" 
-                        required
-                        autocomplete="current-password"
-                    >
-                </div>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-                <button type="submit" class="btn btn-primary w-100">Se connecter</button>
-            </form>
-        </div>
+            <div class="mb-3">
+                <label for="inputUsername" class="form-label">Adresse e-mail</label>
+                <input 
+                    type="email" 
+                    value="{{ last_username ?? '' }}" 
+                    name="_username" 
+                    id="inputUsername" 
+                    class="form-control" 
+                    required 
+                    autofocus
+                    autocomplete="username"
+                >
+            </div>
+
+            <div class="mb-4">
+                <label for="inputPassword" class="form-label">Mot de passe</label>
+                <input 
+                    type="password" 
+                    name="_password" 
+                    id="inputPassword" 
+                    class="form-control" 
+                    required
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <button type="submit" class="btn btn-kaki w-100 py-2 fw-bold">
+                Se connecter
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}

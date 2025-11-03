@@ -1,39 +1,53 @@
+{# templates/base.html.twig #}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}CanILeave - Gestion des Permissions{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <!-- Bootstrap CSS via CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    {% block stylesheets %}{% endblock %}
-            {{ encore_entry_link_tags('app') }}
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
-        <a class="navbar-brand" href="#">CanILeave</a>
-    </nav>
+  <meta charset="UTF-8">
+  <title>{% block title %}Gestion des permissions{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <main class="container py-4">
-        {% block body %}
-        {% for label, messages in app.flashes %}
-    {% for message in messages %}
-        <div class="alert alert-{{ label }} alert-dismissible fade show mt-3" role="alert">
+  {# Polices titres #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&display=swap" rel="stylesheet">
+
+  {# CSS externes (Bootstrap / plugins) #}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+  {# Garde FullCalendar en CDN OU via Encore (choisis 1 seule méthode). Ici: CDN #}
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.7/main.min.css" rel="stylesheet">
+
+  {# CSS compilé par Webpack Encore (inclut assets/styles/app.css) #}
+  {{ encore_entry_link_tags('app') }}
+  {% block stylesheets %}{% endblock %}
+</head>
+
+{# Classe .app pour “scoper” la charte et dominer Bootstrap #}
+<body class="app">
+  <nav class="navbar navbar-expand-lg px-4">
+    <a class="navbar-brand text-white" href="{{ path('app_home') }}">Gestion des permissions</a>
+  </nav>
+
+  <main class="container py-4">
+    {% block body %}
+      {# Flash messages #}
+      {% for label, messages in app.flashes %}
+        {% for message in messages %}
+          <div class="alert alert-{{ label }} alert-dismissible fade show mt-3" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-        </div>
-    {% endfor %}
-{% endfor %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+    {% endblock %}
+  </main>
 
-        {% endblock %}
-    </main>
+  {# JS externes #}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.7/index.global.min.js"></script>
 
-    <!-- Bootstrap JS via CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {% block javascripts %}{% endblock %}
-            {{ encore_entry_script_tags('app') }}
+  {# JS compilé par Webpack Encore (inclut assets/app.js) #}
+  {{ encore_entry_script_tags('app') }}
+  {% block javascripts %}{% endblock %}
 </body>
 </html>

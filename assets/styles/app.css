@@ -1,3 +1,142 @@
-body {
-    background-color: skyblue;
+/* ===========================
+   Charte graphique — Global
+   =========================== */
+:root{
+  --kaki:#8A9A5B;   /* action principale */
+  --gris:#E9EDE0;   /* fond neutre */
+  --bleu:#0B2242;   /* titres/éléments forts */
+  --blanc:#FFFFFF;  /* contrastes */
+  --rouge:#B3261E;  /* action négative */
+}
+
+html,body{height:100%}
+body{
+  background:var(--gris) !important; /* force contre Bootstrap */
+  font-family:"Calibri","Open Sans",system-ui,sans-serif;
+  color:#1b1f23;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ===========================
+   Navigation (navbar)
+   =========================== */
+.navbar{ background:var(--bleu) !important; }
+.navbar .navbar-brand,
+.navbar .nav-link{
+  color:var(--blanc) !important;
+  font-family:"Roboto Slab",serif;
+  letter-spacing:.2px;
+}
+.navbar .nav-link:hover{ opacity:.9; }
+
+/* ===========================
+   Titres / typographies
+   =========================== */
+.page-title{
+  font-family:"Roboto Slab",serif;
+  color:var(--bleu);
+  font-weight:700;
+}
+.hint{ color:#6b7280; } /* texte secondaire discret */
+
+/* ===========================
+   Layouts
+   =========================== */
+main.container{ background:transparent !important; }
+.card,
+.panel{
+  background:var(--blanc);
+  border-radius:1rem;
+  box-shadow:0 6px 20px rgba(0,0,0,.06);
+  border:1px solid rgba(0,0,0,.06);
+}
+
+/* ===========================
+   Formulaires
+   =========================== */
+.form-label{ font-weight:600; color:#2b2f33; }
+.form-control{
+  border-radius:999px;
+  background:var(--blanc);
+  border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 1px 0 rgba(0,0,0,.03) inset;
+}
+.form-control:focus{
+  border-color:var(--kaki);
+  box-shadow:0 0 0 .2rem rgba(138,154,91,.25);
+  outline:0;
+}
+
+/* ===========================
+   Boutons
+   =========================== */
+.btn-kaki{
+  background:var(--kaki) !important;
+  color:var(--blanc) !important;
+  border:none;
+  border-radius:999px;
+  padding:.75rem 1.25rem;
+  transition:filter .2s ease-in-out, transform .04s ease-in-out;
+}
+.btn-kaki:hover{ filter:brightness(.95); }
+.btn-kaki:active{ transform:translateY(1px); }
+
+.btn-refuser{
+  background:var(--rouge) !important;
+  color:#fff !important;
+  border:none;
+  border-radius:999px;
+  padding:.55rem 1rem;
+}
+.btn-refuser:hover{ filter:brightness(.95); }
+
+/* Lien d’action discret */
+.link-action{
+  color:var(--bleu);
+  text-decoration:none;
+}
+.link-action:hover{ text-decoration:underline; }
+
+/* ===========================
+   Badges / Statuts
+   =========================== */
+.badge-kaki{ background:var(--kaki); color:var(--blanc); }
+.badge-bleu{ background:var(--bleu); color:var(--blanc); }
+.badge-attente{ background:#f59e0b; color:#111827; }   /* En attente */
+.badge-acceptee{ background:#16a34a; color:#fff; }     /* Acceptée */
+.badge-refusee{ background:var(--rouge); color:#fff; } /* Refusée */
+
+/* ===========================
+   Tableaux (ex: espace officier)
+   =========================== */
+.table thead th{
+  color:var(--bleu);
+  font-weight:700;
+  border-bottom:2px solid rgba(0,0,0,.08);
+}
+.table tbody td{ vertical-align:middle; }
+.table .actions{ white-space:nowrap; }
+
+/* ===========================
+   Alertes / Feedback
+   =========================== */
+.alert{
+  border-radius:.8rem;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow:0 4px 14px rgba(0,0,0,.05);
+}
+
+/* ===========================
+   Utilitaires
+   =========================== */
+.rounded-pill{ border-radius:999px !important; }
+.shadow-soft{ box-shadow:0 6px 20px rgba(0,0,0,.08) !important; }
+
+/* ===========================
+   Responsive
+   =========================== */
+@media (max-width:576px){
+  .page-title{ font-size:1.5rem; }
+  .card, .panel{ border-radius:.75rem; }
 }

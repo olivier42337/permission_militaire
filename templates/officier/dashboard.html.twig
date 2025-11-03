@@ -1,48 +1,184 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Dashboard Officier{% endblock %}
+{% block title %}Tableau de bord — Officier{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h2 class="mb-4 text-center">
-        👮‍♂️ Tableau de bord – {{ user.grade }} {{ user.nom }} {{ user.prenom }}
-    </h2>
+<div class="container py-4">
 
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card shadow-sm border-start border-4 border-primary">
-                <div class="card-header bg-primary text-white">
-                    📌 Unité du militaire
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ user.unite }}</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 mb-3">
-            <div class="card shadow-sm border-start border-4 border-info">
-                <div class="card-header bg-info text-white">
-                    ⚙️ Actions rapides
-                </div>
-                <div class="card-body d-grid gap-2">
-                    <a href="{{ path('app_officier_demandes') }}" class="btn btn-outline-success">
-                        📋 Gérer les demandes
-                    </a>
-                    <a href="{{ path('app_officier_calendrier') }}" class="btn btn-outline-secondary">
-                        📅 Voir le calendrier global
-                    </a>
-                    <a href="{{ path('app_officier_liste_programmes') }}" class="btn btn-info btn-block mt-2">📋 Missions & Stages</a>
-
-                    <a href="{{ path('app_officier_ajouter_programme') }}" class="btn btn-outline-warning">
-                        ➕ Ajouter mission ou stage
-                    </a>
-                    <a href="{{ path('app_officier_liste_utilisateurs') }}" class="btn btn-outline-dark">
-                        👥 Gérer les utilisateurs
-                    </a>
-                </div>
-            </div>
-        </div>
+  {# En-tête #}
+  <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between mb-4">
+    <div>
+      <h1 class="page-title mb-1">Tableau de bord Officier</h1>
+      <p class="hint mb-0">Unité : <strong>{{ user.unite }}</strong> •
+        {{ user.grade }} {{ user.nom }} {{ user.prenom }}</p>
     </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2">
+      <a href="{{ path('app_officier_ajouter_programme') }}" class="btn btn-kaki">
+        ➕ Ajouter mission / stage
+      </a>
+      <a href="{{ path('app_officier_liste_utilisateurs') }}" class="btn btn-outline-dark rounded-pill">
+        👥 Gérer les utilisateurs
+      </a>
+    </div>
+  </div>
+
+  {# KPIs #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card panel text-center p-3">
+        <div class="hint">Demandes en attente</div>
+        <div class="display-6 fw-bold">{{ kpi_en_attente|default(0) }}</div>
+        <span class="badge badge-attente rounded-pill">En attente</span>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card panel text-center p-3">
+        <div class="hint">Validées ce mois</div>
+        <div class="display-6 fw-bold">{{ kpi_validees|default(0) }}</div>
+        <span class="badge badge-acceptee rounded-pill">Validées</span>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card panel text-center p-3">
+        <div class="hint">Refusées</div>
+        <div class="display-6 fw-bold">{{ kpi_refusees|default(0) }}</div>
+        <span class="badge badge-refusee rounded-pill">Refusées</span>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card panel text-center p-3">
+        <div class="hint">Missions / stages à venir</div>
+        <div class="display-6 fw-bold">{{ kpi_programmes|default(0) }}</div>
+        <span class="badge badge-bleu rounded-pill">Programmés</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    {# File d'attente des demandes #}
+    <div class="col-lg-7">
+      <div class="card panel">
+        <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+          <h2 class="h5 m-0">Demandes à traiter</h2>
+          <a href="{{ path('app_officier_demandes') }}" class="link-action">Tout voir →</a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Militaire</th>
+                <th>Type</th>
+                <th>Dates</th>
+                <th>Statut</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for d in demandes|default([]) %}
+              <tr>
+                <td>{{ d.militaireNom }}</td>
+                <td><span class="badge bg-info">{{ d.type|capitalize }}</span></td>
+                <td>Du {{ d.dateDebut|date('d/m/Y') }} au {{ d.dateFin|date('d/m/Y') }}</td>
+                <td><span class="badge badge-attente rounded-pill">En attente</span></td>
+                <td class="text-end actions">
+                  <form method="post" action="{{ path('app_officier_permission_valider', {'id': d.id}) }}" class="d-inline">
+                    <button type="submit" class="btn btn-success btn-sm">✅ Valider</button>
+                    <input type="hidden" name="commentaire" value="Validé par l'officier">
+                  </form>
+                  
+                  <!-- Bouton pour ouvrir le modal de refus -->
+                  <button type="button" class="btn btn-danger btn-sm ms-1" data-bs-toggle="modal" data-bs-target="#modalRefus{{ d.id }}">
+                    ❌ Refuser
+                  </button>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                  🎉 Aucune demande en attente de validation.
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {# Calendrier & activités #}
+    <div class="col-lg-5">
+      <div class="card panel mb-4">
+        <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+          <h2 class="h5 m-0">Calendrier (aperçu)</h2>
+          <a href="{{ path('app_officier_calendrier') }}" class="link-action">Ouvrir le calendrier →</a>
+        </div>
+        <div class="p-3">
+          <div class="rounded-3 border p-4 text-center text-muted">
+            📅 Aperçu calendrier — permissions validées / missions
+            {% if kpi_en_attente > 0 %}
+              <div class="mt-2">
+                <small>{{ kpi_en_attente }} demande(s) en attente de validation</small>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+          <h2 class="h5 m-0">Dernières actions</h2>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for a in audits|default([]) %}
+            <li class="list-group-item">
+              <strong>{{ a.userNom }}</strong> — {{ a.action }}
+              <span class="hint d-block">le {{ a.date|date('d/m/Y H:i') }}</span>
+            </li>
+          {% else %}
+            <li class="list-group-item text-muted">Aucune action récente.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+{# Modals pour le refus avec raison #}
+{% for d in demandes|default([]) %}
+<div class="modal fade" id="modalRefus{{ d.id }}" tabindex="-1" aria-labelledby="modalRefusLabel{{ d.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalRefusLabel{{ d.id }}">Refuser la permission</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{{ path('app_officier_permission_refuser', {'id': d.id}) }}">
+        <div class="modal-body">
+          <p><strong>Militaire:</strong> {{ d.militaireNom }}</p>
+          <p><strong>Période:</strong> Du {{ d.dateDebut|date('d/m/Y') }} au {{ d.dateFin|date('d/m/Y') }}</p>
+          <p><strong>Type:</strong> {{ d.type|capitalize }}</p>
+          <p><strong>Motif:</strong> {{ d.motif }}</p>
+          
+          <div class="mb-3">
+            <label for="raison_refus{{ d.id }}" class="form-label">
+              <strong>Raison du refus *</strong>
+            </label>
+            <textarea class="form-control" id="raison_refus{{ d.id }}" name="raison_refus" rows="4" 
+                      placeholder="Veuillez indiquer la raison du refus..." required></textarea>
+            <div class="form-text">
+              Cette raison sera visible par le militaire.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-danger">Confirmer le refus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
 {% endblock %}

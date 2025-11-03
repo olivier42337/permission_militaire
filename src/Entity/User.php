@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Permission;
+use App\Entity\Programme;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -45,14 +47,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank]
     private ?string $unite = null;
 
+    #[ORM\Column(type: 'integer')]
+    private int $soldePermissions = 0;
+
     private ?string $plainPassword = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Permission::class, orphanRemoval: true)]
     private Collection $permissions;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Programme::class)]
+    private Collection $programmes;
+
     public function __construct()
     {
         $this->permissions = new ArrayCollection();
+        $this->programmes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -80,6 +89,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         $roles[] = 'ROLE_USER';
+
         return array_unique($roles);
     }
 
@@ -165,17 +175,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->plainPassword = null;
     }
 
-    public function getSalt(): ?string
-    {
-        return null;
-    }
-
     public function getUsername(): string
     {
         return $this->getUserIdentifier();
     }
 
-    // Relations avec Permission
+    // --- Permissions ---
 
     public function getPermissions(): Collection
     {
@@ -202,18 +207,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-    #[ORM\Column(type: 'integer')]
-private int $soldePermissions = 0;
 
-public function getSoldePermissions(): int
-{
-    return $this->soldePermissions;
-}
+    // --- Programmes ---
 
-public function setSoldePermissions(int $solde): self
-{
-    $this->soldePermissions = $solde;
-    return $this;
-}
+    public function getProgrammes(): Collection
+    {
+        return $this->programmes;
+    }
 
+    public function addProgramme(Programme $programme): self
+    {
+        if (!$this->programmes->contains($programme)) {
+            $this->programmes[] = $programme;
+            $programme->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProgramme(Programme $programme): self
+    {
+        if ($this->programmes->removeElement($programme)) {
+            if ($programme->getUser() === $this) {
+                $programme->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    // --- Solde ---
+
+    public function getSoldePermissions(): int
+    {
+        return $this->soldePermissions;
+    }
+
+    public function setSoldePermissions(int $solde): self
+    {
+        $this->soldePermissions = $solde;
+        return $this;
+    }
 }

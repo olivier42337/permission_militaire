@@ -1,10 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard Militaire{% endblock %}
+{% block title %}Tableau de bord militaire{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
 
+    {# ✅ Alertes flash #}
     {% for label, messages in app.flashes %}
         {% for message in messages %}
             <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
@@ -14,56 +15,266 @@
         {% endfor %}
     {% endfor %}
 
-    <h2 class="mb-4">Bienvenue, {{ user.nom }} {{ user.prenom }}</h2>
+    {# ✅ En-tête #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">INTERFACE MILITAIRE</h2>
+        <a href="{{ path('app_logout') }}" class="btn btn-outline-secondary">Se déconnecter</a>
+    </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Votre solde de permissions</h5>
-            <p class="card-text display-6 text-success">{{ user.soldePermissions }} jours</p>
+    {# ✅ Statistiques rapides #}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ solde.courte ?? 0 }}</h5>
+                    <p class="card-text">Jours courte</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ solde.longue ?? 0 }}</h5>
+                    <p class="card-text">Jours longue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ solde.étranger ?? 0 }}</h5>
+                    <p class="card-text">Jours étranger</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ permissions|length }}</h5>
+                    <p class="card-text">Total demandes</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="mt-4">
-        <a href="{{ path('app_militaire_demande') }}" class="btn btn-primary">Faire une demande de permission</a>
+    {# ✅ Bouton de demande #}
+    <div class="mb-4">
+        <div class="alert alert-light border d-flex justify-content-between align-items-center">
+            <span><strong>Solde total :</strong> {{ (solde.courte + solde.longue + solde.étranger) }} jours</span>
+            <a href="{{ path('app_militaire_demande') }}" class="btn btn-primary">➕ Faire une nouvelle demande</a>
+        </div>
     </div>
 
-    <div class="mt-5">
-        <h4>Historique des demandes</h4>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Début</th>
-                    <th>Fin</th>
-                    <th>Motif</th>
-                    <th>Statut</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for permission in permissions %}
-                    <tr>
-                        <td>{{ permission.type }}</td>
-                        <td>{{ permission.dateDebut|date('d/m/Y') }}</td>
-                        <td>{{ permission.dateFin|date('d/m/Y') }}</td>
-                        <td>{{ permission.motif }}</td>
-                        <td>
-                            {% if permission.statut == 'acceptée' %}
-                                <span class="badge bg-success">Acceptée</span>
-                            {% elseif permission.statut == 'refusée' %}
-                                <span class="badge bg-danger">Refusée</span>
-                            {% else %}
-                                <span class="badge bg-warning text-dark">En attente</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center">Aucune demande envoyée.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {# ✅ Résumé des demandes #}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h3 class="text-warning">{{ stats.en_attente ?? 0 }}</h3>
+                    <p class="card-text">En attente</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h3 class="text-success">{{ stats.acceptees ?? 0 }}</h3>
+                    <p class="card-text">Acceptées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <h3 class="text-danger">{{ stats.refusees ?? 0 }}</h3>
+                    <p class="card-text">Refusées</p>
+                </div>
+            </div>
+        </div>
     </div>
 
+    {# ✅ Historique des demandes récentes #}
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">📋 Historique de mes demandes</h5>
+        </div>
+        <div class="card-body">
+            {% if permissions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date Début</th>
+                                <th>Date Fin</th>
+                                <th>Durée</th>
+                                <th>Statut</th>
+                                <th>Date Demande</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for permission in permissions|slice(0, 5) %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-info">{{ permission.type|capitalize }}</span>
+                                    </td>
+                                    <td>{{ permission.dateDebut ? permission.dateDebut|date('d/m/Y') : '' }}</td>
+                                    <td>{{ permission.dateFin ? permission.dateFin|date('d/m/Y') : '' }}</td>
+                                    <td>
+                                        {% if permission.dateDebut and permission.dateFin %}
+                                            {% set difference = permission.dateDebut.diff(permission.dateFin) %}
+                                            <span class="badge bg-secondary">{{ difference.days + 1 }} jour(s)</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if permission.statut == 'acceptée' or permission.statut == 'acceptee' %}bg-success
+                                            {% elseif permission.statut == 'refusée' or permission.statut == 'refusee' %}bg-danger
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ permission.statut }}
+                                        </span>
+                                    </td>
+                                    <td>{{ permission.createdAt ? permission.createdAt|date('d/m/Y H:i') : '' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#modalPermission{{ permission.id }}">
+                                            Détails
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if permissions|length > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="{{ path('app_militaire_historique') }}" class="btn btn-outline-primary">
+                            Voir tout l'historique ({{ permissions|length }} demandes)
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <p>📭 Aucune demande de permission enregistrée.</p>
+                    <a href="{{ path('app_militaire_demande') }}" class="btn btn-primary">
+                        Faire une première demande
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ✅ Calendrier personnel #}
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">🗓️ Calendrier personnel</h5>
+        </div>
+        <div class="card-body">
+            <div id="calendrier" style="min-height: 500px;"></div>
+        </div>
+    </div>
 </div>
+
+{# ✅ Modals pour les détails des permissions #}
+{% for permission in permissions %}
+<div class="modal fade" id="modalPermission{{ permission.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Détails de la Permission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Type:</strong> {{ permission.type|capitalize }}</p>
+                <p><strong>Du:</strong> {{ permission.dateDebut ? permission.dateDebut|date('d/m/Y') : '' }}</p>
+                <p><strong>Au:</strong> {{ permission.dateFin ? permission.dateFin|date('d/m/Y') : '' }}</p>
+                <p><strong>Motif:</strong> {{ permission.motif }}</p>
+                <p><strong>Statut:</strong> 
+                    <span class="badge 
+                        {% if permission.statut == 'acceptée' or permission.statut == 'acceptee' %}bg-success
+                        {% elseif permission.statut == 'refusée' or permission.statut == 'refusee' %}bg-danger
+                        {% else %}bg-warning{% endif %}">
+                        {{ permission.statut }}
+                    </span>
+                </p>
+                
+                {# ✅ Affichage de la raison du refus si disponible #}
+                {% if (permission.statut == 'refusée' or permission.statut == 'refusee') and permission.commentaire %}
+                    <div class="alert alert-danger mt-3">
+                        <strong>Raison du refus :</strong><br>
+                        {{ permission.commentaire|replace({'Refusé - Raison:': ''}) }}
+                    </div>
+                {% endif %}
+                
+                {% if permission.statut == 'acceptée' or permission.statut == 'acceptee' %}
+                    <div class="alert alert-success mt-3">
+                        <strong>Commentaire :</strong><br>
+                        {{ permission.commentaire ?? 'Demande acceptée' }}
+                    </div>
+                {% endif %}
+                
+                <p><strong>Date de demande:</strong> {{ permission.createdAt ? permission.createdAt|date('d/m/Y H:i') : '' }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendrier');
+            
+            if (calendarEl) {
+                // Utiliser les données déjà disponibles depuis Twig
+                var eventsData = {{ calendar_events|json_encode|raw }};
+                
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'fr',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,dayGridWeek,dayGridDay'
+                    },
+                    events: eventsData,
+                    eventDisplay: 'block',
+                    height: 'auto',
+                    eventClick: function(info) {
+                        var event = info.event;
+                        var details = '📅 ' + event.title + '\n\n';
+                        
+                        var startDate = event.start ? event.start.toLocaleDateString('fr-FR') : '';
+                        var endDate = event.end ? new Date(event.end.getTime() - 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR') : '';
+                        
+                        details += '📆 Du: ' + startDate + '\n';
+                        details += '📆 Au: ' + endDate;
+                        
+                        alert(details);
+                    },
+                    eventDidMount: function(info) {
+                        if (info.event.title) {
+                            info.el.setAttribute('title', info.event.title);
+                        }
+                    }
+                });
+
+                calendar.render();
+                console.log('Calendrier initialisé avec', eventsData.length, 'événements');
+
+            } else {
+                console.error('Élément calendrier non trouvé');
+            }
+        });
+    </script>
 {% endblock %}

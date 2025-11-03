@@ -1,0 +1,158 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique des Permissions{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Historique de mes Permissions</h2>
+        <a href="{{ path('app_militaire_dashboard') }}" class="btn btn-outline-secondary">
+            ← Retour au tableau de bord
+        </a>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary text-center">
+                <div class="card-body">
+                    <h4>{{ stats.total }}</h4>
+                    <p>Total Demandes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success text-center">
+                <div class="card-body">
+                    <h4>{{ stats.acceptees }}</h4>
+                    <p>Acceptées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger text-center">
+                <div class="card-body">
+                    <h4>{{ stats.refusees }}</h4>
+                    <p>Refusées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning text-center">
+                <div class="card-body">
+                    <h4>{{ stats.en_attente }}</h4>
+                    <p>En Attente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des permissions -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Date Début</th>
+                            <th>Date Fin</th>
+                            <th>Durée</th>
+                            <th>Motif</th>
+                            <th>Statut</th>
+                            <th>Date Demande</th>
+                            <th>Détails</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for permission in permissions %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info">{{ permission.type|capitalize }}</span>
+                                </td>
+                                <td>{{ permission.dateDebut|date('d/m/Y') }}</td>
+                                <td>{{ permission.dateFin|date('d/m/Y') }}</td>
+                                <td>
+                                    {% set difference = permission.dateDebut.diff(permission.dateFin) %}
+                                    <span class="badge bg-secondary">{{ difference.days + 1 }} jour(s)</span>
+                                </td>
+                                <td>{{ permission.motif }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if permission.statut == 'acceptée' or permission.statut == 'acceptee' %}bg-success
+                                        {% elseif permission.statut == 'refusée' or permission.statut == 'refusee' %}bg-danger
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ permission.statut }}
+                                    </span>
+                                </td>
+                                <td>{{ permission.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalPermission{{ permission.id }}">
+                                        📋 Détails
+                                    </button>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    Aucune demande de permission enregistrée.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals pour les détails -->
+{% for permission in permissions %}
+<div class="modal fade" id="modalPermission{{ permission.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Détails de la Permission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Type:</strong> {{ permission.type|capitalize }}</p>
+                <p><strong>Du:</strong> {{ permission.dateDebut|date('d/m/Y') }}</p>
+                <p><strong>Au:</strong> {{ permission.dateFin|date('d/m/Y') }}</p>
+                <p><strong>Motif:</strong> {{ permission.motif }}</p>
+                <p><strong>Statut:</strong> 
+                    <span class="badge 
+                        {% if permission.statut == 'acceptée' or permission.statut == 'acceptee' %}bg-success
+                        {% elseif permission.statut == 'refusée' or permission.statut == 'refusee' %}bg-danger
+                        {% else %}bg-warning{% endif %}">
+                        {{ permission.statut }}
+                    </span>
+                </p>
+                
+                {# Affichage de la raison du refus si disponible #}
+                {% if (permission.statut == 'refusée' or permission.statut == 'refusee') and permission.commentaire %}
+                    <div class="alert alert-danger mt-3">
+                        <strong>📝 Raison du refus :</strong><br>
+                        {{ permission.commentaire|replace({'Refusé - Raison:': ''}) }}
+                    </div>
+                {% endif %}
+                
+                {% if permission.statut == 'acceptée' or permission.statut == 'acceptee' %}
+                    <div class="alert alert-success mt-3">
+                        <strong>💬 Commentaire :</strong><br>
+                        {{ permission.commentaire ?? 'Demande acceptée' }}
+                    </div>
+                {% endif %}
+                
+                <p><strong>📅 Date de demande:</strong> {{ permission.createdAt|date('d/m/Y H:i') }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

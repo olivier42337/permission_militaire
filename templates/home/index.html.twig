@@ -1,14 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil -Application de gestion des permissions militaires {% endblock %}
+{% block title %}Accueil — Application de gestion des permissions militaires{% endblock %}
 
 {% block body %}
-<div class="container text-center mt-5">
-    <h1 class="display-4">Bienvenue sur gestion des permissions </h1>
-    <p class="lead">Application de gestion des permissions militaires</p>
-    
+<div class="d-flex justify-content-center align-items-center flex-column" style="min-height:80vh;">
+    <h1 class="page-title mb-3 text-center">Bienvenue sur la gestion des permissions militaires</h1>
+    <p class="lead text-center" style="max-width:700px;">
+        Cette application permet aux militaires, officiers et responsables RH de gérer les demandes de permissions, les plannings de missions et les historiques de décisions dans un environnement sécurisé.
+    </p>
+
     <div class="mt-4">
-        <a href="/login" class="btn btn-primary btn-lg">Se connecter</a>
+        <a href="{{ path('app_login') }}" class="btn btn-kaki btn-lg shadow-sm px-5">Se connecter</a>
     </div>
 </div>
 {% endblock %}
