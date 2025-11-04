@@ -1,15 +1,11 @@
-#!/usr/bin/env sh
+#!/bin/bash
 set -e
 
-# Rendre la conf Nginx (Render injecte ${PORT})
-envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Générer la config nginx
+envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# Lancer PHP-FPM en arrière-plan
+# Démarrer PHP-FPM
 php-fpm -D
 
-# Préparer le cache en prod (sans bloquer si DB non joignable)
-php -d detect_unicode=0 bin/console cache:clear --env=prod --no-warmup || true
-php -d detect_unicode=0 bin/console cache:warmup --env=prod || true
-
-# Nginx au premier plan
-exec nginx -g 'daemon off;'
+# Démarrer nginx
+nginx -g 'daemon off;'
