@@ -16,26 +16,24 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/project
 
-# Copier juste composer.* pour profiter du cache Docker
+# Étape vendors (cache Docker)
 COPY composer.json composer.lock ./
-# build.sh utilisera ces fichiers
 COPY build.sh /usr/local/bin/build.sh
-RUN chmod +x /usr/local/bin/build.sh
-RUN /usr/local/bin/build.sh
+RUN chmod +x /usr/local/bin/build.sh && /usr/local/bin/build.sh
 
 # Copier le reste de l'app
 COPY . .
 
-# Perms Symfony
+# Permissions Symfony
 RUN mkdir -p var/cache var/log \
  && chown -R www-data:www-data /var/www/project \
  && chmod -R 775 var
 
-# Purger conf Nginx par défaut (évite listen 80/443 résiduels)
+# Purger conf Nginx par défaut
 RUN rm -f /etc/nginx/conf.d/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/* \
  && mkdir -p /var/log/nginx
 
-# Conf Nginx template + script runtime
+# Conf Nginx + script runtime
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
@@ -43,5 +41,5 @@ RUN chmod +x /usr/local/bin/start.sh
 # Prod
 ENV APP_ENV=prod APP_DEBUG=0
 
-# Un seul entrypoint (Render gère ${PORT})
+# EntryPoint (Render fournit ${PORT})
 CMD ["/usr/local/bin/start.sh"]
