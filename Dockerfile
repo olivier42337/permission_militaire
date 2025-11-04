@@ -6,11 +6,14 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/project
 COPY . .
 
-# FORCER APP_DEBUG=1
 RUN echo "APP_ENV=prod" > .env && \
-    echo "APP_DEBUG=1" >> .env && \
-    echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" >> .env
+    echo "APP_DEBUG=0" >> .env
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# ✅ CRÉER LES FICHIERS WEBPACK VIDES
+RUN mkdir -p public/build && \
+    echo '{"entrypoints":{},"integrity":{}}' > public/build/entrypoints.json && \
+    echo '{}' > public/build/manifest.json
 
 CMD ["php", "-S", "0.0.0.0:10000", "-t", "public"]
