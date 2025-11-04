@@ -1,21 +1,7 @@
-FROM php:8.2-fpm
-
-RUN apt-get update && apt-get install -y nginx git unzip
+FROM php:8.2-cli
+RUN apt-get update && apt-get install -y git unzip
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
 WORKDIR /var/www/project
 COPY . .
-
-# ✅ AJOUT DE --no-scripts
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-
-RUN echo '[global]' > /usr/local/etc/php-fpm.conf && \
-    echo 'daemonize = no' >> /usr/local/etc/php-fpm.conf && \
-    echo '[www]' >> /usr/local/etc/php-fpm.conf && \
-    echo 'listen = 9000' >> /usr/local/etc/php-fpm.conf
-
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-CMD ["/start.sh"]
+CMD ["php", "-S", "0.0.0.0:10000", "-t", "public"]
