@@ -6,13 +6,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/project
 COPY . .
 
-# ✅ CRÉER .env POUR LA PRODUCTION
-RUN if [ ! -f ".env" ]; then \
-        echo "APP_ENV=prod" > .env && \
-        echo "APP_DEBUG=0" >> .env && \
-        echo "MESSENGER_TRANSPORT_DSN=doctrine://default" >> .env && \
-        echo "✅ Created production .env"; \
-    fi
+# FORCER APP_DEBUG=1
+RUN echo "APP_ENV=prod" > .env && \
+    echo "APP_DEBUG=1" >> .env && \
+    echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" >> .env
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
