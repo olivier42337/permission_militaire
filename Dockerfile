@@ -6,7 +6,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/project
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# ✅ AJOUT DE --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 RUN echo '[global]' > /usr/local/etc/php-fpm.conf && \
     echo 'daemonize = no' >> /usr/local/etc/php-fpm.conf && \
