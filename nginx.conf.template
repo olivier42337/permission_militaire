@@ -1,0 +1,33 @@
+events {}
+
+http {
+  server {
+    listen ${PORT};
+    server_name _;
+    root /var/www/project/public;
+    index index.php;
+
+    location / {
+      try_files $uri /index.php?$query_string;
+    }
+
+    location ~ ^/index\.php(/|$) {
+      include fastcgi_params;               # ou fastcgi.conf selon image
+      fastcgi_pass 127.0.0.1:9000;          # PHP-FPM dans le même conteneur
+      fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+      fastcgi_param DOCUMENT_ROOT $document_root;
+      # Ne PAS mettre 'internal' ici
+    }
+
+    location ~ \.php$ { return 404; }
+
+    # Assets en cache long (facultatif)
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+      expires 1y;
+      add_header Cache-Control "public, immutable";
+    }
+
+    access_log /var/log/nginx/access.log;
+    error_log  /var/log/nginx/error.log;
+  }
+}
