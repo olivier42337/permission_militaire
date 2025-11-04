@@ -12,13 +12,23 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/project
+
+# ÉTAPE CRITIQUE : debug pour voir ce qui se passe
+RUN echo "=== DEBUG: Listing files ===" && ls -la
+
 COPY composer.json composer.lock ./
+RUN echo "=== DEBUG: Before composer install ===" && ls -la vendor/ 2>/dev/null || echo "No vendor directory"
+
 RUN composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader
+
+RUN echo "=== DEBUG: After composer install ===" && ls -la vendor/ && du -sh vendor/
 
 COPY . .
 
+RUN echo "=== DEBUG: After COPY . . ===" && ls -la vendor/ && du -sh vendor/
+
 RUN rm -rf /etc/nginx/conf.d/* /etc/nginx/sites-available/* /etc/nginx/sites-enabled/*
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx-render.conf /etc/nginx/nginx.conf
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
