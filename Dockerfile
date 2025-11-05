@@ -1,7 +1,5 @@
 FROM php:8.2-cli
-RUN apt-get update && apt-get install -y git unzip sqlite3 libsqlite3-dev
-RUN docker-php-ext-install pdo
-RUN docker-php-ext-install pdo_sqlite
+RUN apt-get update && apt-get install -y git unzip sqlite3
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/project
 COPY . .
