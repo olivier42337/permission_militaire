@@ -7,6 +7,7 @@ COPY . .
 RUN echo "APP_ENV=prod" > .env
 RUN echo "APP_DEBUG=0" >> .env
 RUN echo "MESSENGER_TRANSPORT_DSN=doctrine://default" >> .env
+RUN echo "APP_SECRET=6b3b92c6c261e7d6a3f7b8c9a2d4e5f6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d" >> .env
 RUN mkdir -p var/cache var/log public/build && chmod -R 777 var/
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 RUN echo '{"entrypoints":{"app":{"js":["/build/app.js"],"css":["/build/app.css"]}},"integrity":{}}' > public/build/entrypoints.json
