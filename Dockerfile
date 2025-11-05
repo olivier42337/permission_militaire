@@ -14,4 +14,4 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 RUN echo '{"entrypoints":{"app":{"js":["/build/app.js"],"css":["/build/app.css"]}},"integrity":{}}' > public/build/entrypoints.json
 RUN echo '{"app.js":"app.js","app.css":"app.css"}' > public/build/manifest.json
 RUN touch public/build/app.js public/build.app.css
-CMD sh -c "php bin/console doctrine:migrations:migrate --no-interaction && php bin/console doctrine:fixtures:load --no-interaction --append && php -S 0.0.0.0:10000 -t public"
+CMD sh -c "set -e && echo '🔧 Starting migrations...' && php bin/console doctrine:migrations:migrate --no-interaction && echo '✅ Migrations completed' && echo '🔧 Loading fixtures...' && php bin/console doctrine:fixtures:load --no-interaction --append && echo '✅ Fixtures completed' && echo '🚀 Starting server...' && php -S 0.0.0.0:10000 -t public"
