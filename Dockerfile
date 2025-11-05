@@ -20,6 +20,4 @@ RUN cat > public/build/entrypoints.json << 'EOL'
 EOL
 RUN echo '{"app.js":"app.js","app.css":"app.css"}' > public/build/manifest.json
 RUN touch public/build/app.js public/build/app.css
-COPY wait-for-db.sh /wait-for-db.sh
-RUN chmod +x /wait-for-db.sh
-CMD ["/wait-for-db.sh", "php", "-S", "0.0.0.0:10000", "-t", "public"]
+CMD ["php", "-S", "0.0.0.0:10000", "-t", "public"]
