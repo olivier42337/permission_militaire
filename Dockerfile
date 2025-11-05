@@ -1,21 +1,20 @@
 FROM php:8.2-cli
-RUN apt-get update && apt-get install -y git unzip sqlite3 libicu-dev
-RUN docker-php-ext-configure intl
-RUN docker-php-ext-install intl pdo pdo_sqlite
+RUN apt-get update && apt-get install -y --no-install-recommends git unzip sqlite3 libsqlite3-dev
+RUN docker-php-ext-install pdo pdo_sqlite
 RUN rm -rf /var/lib/apt/lists/*
+ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_MEMORY_LIMIT=-1
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/project
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader --no-scripts
 COPY . .
-RUN echo "APP_ENV=prod" > .env
-RUN echo "APP_DEBUG=0" >> .env
-RUN echo "MESSENGER_TRANSPORT_DSN=doctrine://default" >> .env
-RUN echo "APP_SECRET=6b3b92c6c261e7d6a3f7b8c9a2d4e5f6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d" >> .env
 RUN echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" >> .env
-RUN echo "SYMFONY_DEPRECATIONS_HELPER=disabled" >> .env
+RUN composer dump-env prod
 RUN mkdir -p var/cache var/log var/sessions public/build
-RUN touch var/data.db && chmod -R 777 var/
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-RUN echo '{"entrypoints":{"app":{"js":["/build/app.js"],"css":["/build/app.css"]}},"integrity":{}}' > public/build/entrypoints.json
-RUN echo '{"app.js":"app.js","app.css":"app.css"}' > public/build/manifest.json
-RUN touch public/build/app.js public/build.app.css
-CMD sh -c "php bin/console doctrine:migrations:migrate --no-interaction && php bin/console doctrine:fixtures:load --no-interaction --append && php -S 0.0.0.0:10000 -t public"
+RUN touch var/data.db
+RUN chmod -R 775 var
+RUN [ -f public/build/entrypoints.json ] || printf '{ "entrypoints": { "app": { "js": [], "css": [] } }, "integrity": {} }' > public/build/entrypoints.json
+RUN [ -f public/build/manifest.json ]   || printf '{}' > public/build/manifest.json
+RUN echo "ok" > public/healthz.html
+ENV APP_ENV=prod APP_DEBUG=0 SYMFONY_DEPRECATIONS_HELPER=disabled
+CMD sh -c "php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration && php -S 0.0.0.0:${PORT:-10000} -t public"
