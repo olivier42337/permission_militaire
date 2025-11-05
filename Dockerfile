@@ -6,11 +6,12 @@ WORKDIR /var/www/project
 COPY . .
 RUN echo "APP_ENV=prod" > .env
 RUN echo "APP_DEBUG=0" >> .env
+RUN echo "MESSENGER_TRANSPORT_DSN=doctrine://default" >> .env
 RUN mkdir -p var/cache var/log public/build && chmod -R 777 var/
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 RUN echo '{"entrypoints":{"app":{"js":["/build/app.js"],"css":["/build/app.css"]}},"integrity":{}}' > public/build/entrypoints.json
 RUN echo '{"app.js":"app.js","app.css":"app.css"}' > public/build/manifest.json
-RUN touch public/build/app.js public/build/app.css
+RUN touch public/build/app.js public/build.app.css
 COPY run-migrations.sh /run-migrations.sh
 RUN chmod +x /run-migrations.sh
 CMD ["/run-migrations.sh"]
